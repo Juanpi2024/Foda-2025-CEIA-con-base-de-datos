@@ -87,19 +87,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
 
-    console.log('FODA Data for Analysis:', data);
-
-    // UI Transition
+    // UI Transition - Loading state
     submitBtn.disabled = true;
+    const originalBtnText = submitBtn.innerHTML;
     submitBtn.innerHTML = 'Enviando a Matriz...';
     headerPara.innerText = 'Generando Matriz de Calidad Institucional...';
 
-    setTimeout(() => {
-      steps.forEach(s => s.classList.remove('active'));
-      successStep.classList.add('active');
-      navButtons.classList.add('hidden');
-      progressBar.parentElement.style.display = 'none';
-    }, 2000);
+    // SEND DATA TO GOOGLE SHEETS
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyi7t55HXAxBNdVortheg-9McJEU8kBXeSqrrlyRlqs3XfcrQ_GYbttNUEva4bCNoQxyw/exec';
+
+    // Using fetch with no-cors or handling the redirect if necessary. 
+    // Usually, Google Apps Script requires a simple POST.
+    fetch(scriptURL, {
+      method: 'POST',
+      mode: 'no-cors', // Essential for Google Apps Script cross-origin
+      body: new URLSearchParams(formData)
+    })
+      .then(() => {
+        // Show success UI
+        steps.forEach(s => s.classList.remove('active'));
+        successStep.classList.add('active');
+        navButtons.classList.add('hidden');
+        progressBar.parentElement.style.display = 'none';
+        headerPara.innerText = '¡Análisis 2024 Generado con Éxito!';
+      })
+      .catch(error => {
+        console.error('Error al enviar:', error);
+        alert('Hubo un error al guardar los datos. Por favor, intenta de nuevo.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+      });
   });
 
   // Initialize
