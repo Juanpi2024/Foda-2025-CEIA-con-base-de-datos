@@ -447,10 +447,51 @@ input[type="text"]:focus {
   color: var(--danger);
 }
 
-.loading {
-  text-align: center;
+/* AI Report Styling */
+.ai-report-placeholder {
   color: var(--text-muted);
-  font-style: italic;
+  line-height: 1.8;
+  font-size: 1.05rem;
+}
+
+.ai-section {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  border-left: 4px solid var(--primary);
+}
+
+.ai-section h4 {
+  color: var(--primary);
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+}
+
+.ai-section p {
+  margin-bottom: 1rem;
+}
+
+.ai-section ul {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.ai-section li {
+  margin-bottom: 0.5rem;
+}
+
+.ai-action-item {
+  color: var(--success);
+  font-weight: 600;
+  display: block;
+  margin-top: 0.5rem;
+}
+
+.ai-critical-item {
+  color: var(--danger);
+  font-weight: 600;
 }
 
 footer {

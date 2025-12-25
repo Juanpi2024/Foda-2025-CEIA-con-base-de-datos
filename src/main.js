@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const fortalezasList = document.getElementById('fortalezasList');
   const debilidadesList = document.getElementById('debilidadesList');
   const participantesList = document.getElementById('participantesList');
+  const aiReportContent = document.getElementById('aiReportContent');
 
   // Charts
   let sacRadarChart = null;
@@ -212,6 +213,45 @@ document.addEventListener('DOMContentLoaded', () => {
     renderBarChart(questionAverages);
     renderBulletPoints(questionAverages);
     renderParticipants(data);
+    generateStrategicAnalysis(questionAverages, areas);
+  }
+
+  function generateStrategicAnalysis(averages, areas) {
+    const lowArea = Object.entries(areas).sort((a, b) => a[1] - b[1])[0];
+    const highArea = Object.entries(areas).sort((a, b) => b[1] - a[1])[0];
+    const criticalQuestions = Object.entries(averages).filter(([q, v]) => v < 3);
+
+    let reportHtml = `
+      <div class="ai-section">
+        <h4>🔍 Diagnóstico de Cumplimiento SAC</h4>
+        <p>El área de <strong>${highArea[0]}</strong> presenta el mejor desempeño institucional con un promedio de ${highArea[1].toFixed(1)}. Sin embargo, se observa un desafío crítico en el área de <strong>${lowArea[0]}</strong> (${lowArea[1].toFixed(1)}), lo que impacta directamente en la percepción de calidad educativa.</p>
+      </div>
+
+      <div class="ai-section">
+        <h4>📉 Implicancias para el Colegio</h4>
+        <ul>
+          ${criticalQuestions.length > 0 ?
+        criticalQuestions.map(([q, v]) => `<li>La baja calificación en <strong>P${q.slice(1)}</strong> indica una brecha en la gestión de procesos que podría aumentar la deserción o el descontento de la comunidad.</li>`).join('') :
+        '<li>No se detectan puntajes críticos individuales (menores a 3.0), lo que sugiere una base operativa sólida.</li>'
+      }
+          <li>La discrepancia entre los resultados TP y la formación general sugiere una necesidad de mayor integración andragógica.</li>
+        </ul>
+      </div>
+
+      <div class="ai-section">
+        <h4>🚀 Acciones de Mejora Sugeridas</h4>
+        <ul>
+          ${lowArea[0] === 'Liderazgo' ? '<li>Fortalecer los canales de comunicación mediante boletines de cumplimiento del Convenio ADP.</li>' : ''}
+          ${lowArea[0] === 'Curricular' ? '<li>Implementar talleres de actualización tecnológica específicos para las especialidades de Electricidad y Párvulos.</li>' : ''}
+          ${lowArea[0] === 'Convivencia' ? '<li>Activar protocolos de red de apoyo comunal para mitigar los riesgos del entorno (transporte/seguridad).</li>' : ''}
+          ${lowArea[0] === 'Recursos' ? '<li>Realizar auditoría participativa de infraestructura para priorizar mejoras visibles con fondos Decreto 240.</li>' : ''}
+          ${lowArea[0] === 'Resultados' ? '<li>Establecer un sistema de seguimiento de egresados para validar la inserción laboral efectiva en Parral.</li>' : ''}
+          <li><span class="ai-action-item">Meta 2025: Cerrar la brecha en ${lowArea[0]} mediante un Plan de Acción Normativo focalizado.</span></li>
+        </ul>
+      </div>
+    `;
+
+    aiReportContent.innerHTML = reportHtml;
   }
 
   function renderParticipants(data) {
