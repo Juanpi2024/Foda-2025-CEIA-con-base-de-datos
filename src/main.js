@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const totalResponsesEl = document.getElementById('totalResponses');
   const fortalezasList = document.getElementById('fortalezasList');
   const debilidadesList = document.getElementById('debilidadesList');
+  const participantesList = document.getElementById('participantesList');
 
   // Charts
   let sacRadarChart = null;
@@ -192,6 +193,23 @@ document.addEventListener('DOMContentLoaded', () => {
     renderRadarChart(Object.keys(areas), Object.values(areas));
     renderBarChart(questionAverages);
     renderBulletPoints(questionAverages);
+    renderParticipants(data);
+  }
+
+  function renderParticipants(data) {
+    // Get last 5 names
+    const recent = [...data].reverse().slice(0, 5);
+    participantesList.innerHTML = recent.map(row => {
+      // Handle both "Nombre" and "nombre" keys
+      const name = row.nombre || row.Nombre || 'Anónimo';
+      const date = new Date(row.fecha || row.Fecha).toLocaleDateString('es-CL');
+      return `
+        <li>
+          <span>${name}</span>
+          <span class="score score-mid" style="font-size: 0.7rem;">${date}</span>
+        </li>
+      `;
+    }).join('');
   }
 
   function renderRadarChart(labels, values) {
