@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         successStep.classList.add('active');
         navButtons.classList.add('hidden');
         progressBar.parentElement.style.display = 'none';
-        headerPara.innerText = '¡Análisis 2024 Generado con Éxito!';
+        headerPara.innerText = '¡Análisis 2025 Generado con Éxito!';
       })
       .catch(error => {
         console.error('Error:', error);
