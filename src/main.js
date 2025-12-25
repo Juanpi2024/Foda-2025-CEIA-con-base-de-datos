@@ -1,6 +1,8 @@
 import './style.css'
+import Chart from 'chart.js/auto'
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Elements
   const form = document.getElementById('fodaForm');
   const steps = Array.from(document.querySelectorAll('.step:not(#successStep)'));
   const successStep = document.getElementById('successStep');
@@ -9,21 +11,60 @@ document.addEventListener('DOMContentLoaded', () => {
   const prevBtn = document.getElementById('prevBtn');
   const submitBtn = document.getElementById('submitBtn');
   const navButtons = document.getElementById('navButtons');
-  const headerPara = document.querySelector('header p');
+  const headerPara = document.getElementById('headerDescription');
+
+  // View Elements
+  const viewSurveyBtn = document.getElementById('viewSurveyBtn');
+  const viewDashboardBtn = document.getElementById('viewDashboardBtn');
+  const surveyView = document.getElementById('surveyView');
+  const dashboardView = document.getElementById('dashboardView');
+  const refreshStatsBtn = document.getElementById('refreshStatsBtn');
+
+  // Dashboard Elements
+  const totalResponsesEl = document.getElementById('totalResponses');
+  const fortalezasList = document.getElementById('fortalezasList');
+  const debilidadesList = document.getElementById('debilidadesList');
+
+  // Charts
+  let sacRadarChart = null;
+  let questionsBarChart = null;
+
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyi7t55HXAxBNdVortheg-9McJEU8kBXeSqrrlyRlqs3XfcrQ_GYbttNUEva4bCNoQxyw/exec';
 
   let currentStep = 0;
 
+  // --- NAVIGATION LOGIC ---
+  viewSurveyBtn.addEventListener('click', () => {
+    switchView('survey');
+  });
+
+  viewDashboardBtn.addEventListener('click', () => {
+    switchView('dashboard');
+    loadDashboardData();
+  });
+
+  function switchView(view) {
+    if (view === 'survey') {
+      surveyView.classList.add('active');
+      dashboardView.classList.remove('active');
+      viewSurveyBtn.classList.add('active');
+      viewDashboardBtn.classList.remove('active');
+    } else {
+      surveyView.classList.remove('active');
+      dashboardView.classList.add('active');
+      viewSurveyBtn.classList.remove('active');
+      viewDashboardBtn.classList.add('active');
+    }
+  }
+
+  // --- SURVEY LOGIC ---
   function updateSurvey() {
-    // Update Steps visibility
     steps.forEach((step, index) => {
       step.classList.toggle('active', index === currentStep);
     });
 
-    // Update Progress Bar
     const progress = ((currentStep + 1) / steps.length) * 100;
     progressBar.style.width = `${progress}%`;
-
-    // Update Buttons
     prevBtn.classList.toggle('hidden', currentStep === 0);
 
     if (currentStep === steps.length - 1) {
@@ -33,15 +74,12 @@ document.addEventListener('DOMContentLoaded', () => {
       nextBtn.classList.remove('hidden');
       submitBtn.classList.add('hidden');
     }
-
-    // Smooth scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function validateCurrentStep() {
     const activeStep = steps[currentStep];
     const requiredInputs = activeStep.querySelectorAll('input[required]');
-
     let isValid = true;
     const groups = new Set();
     requiredInputs.forEach(input => groups.add(input.name));
@@ -50,13 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const checked = activeStep.querySelector(`input[name="${name}"]:checked`);
       if (!checked) {
         isValid = false;
-        // Subtle shake or visual hint could go here
         const question = activeStep.querySelector(`input[name="${name}"]`).closest('.question');
         question.style.borderLeft = '4px solid #ef4444';
         setTimeout(() => question.style.borderLeft = 'none', 2000);
       }
     });
-
     return isValid;
   }
 
@@ -80,31 +116,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-
     if (!validateCurrentStep()) return;
 
-    // Collect data
     const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
-
-    // UI Transition - Loading state
     submitBtn.disabled = true;
-    const originalBtnText = submitBtn.innerHTML;
     submitBtn.innerHTML = 'Enviando a Matriz...';
-    headerPara.innerText = 'Generando Matriz de Calidad Institucional...';
+    headerPara.innerText = 'Guardando datos en tiempo real...';
 
-    // SEND DATA TO GOOGLE SHEETS
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyi7t55HXAxBNdVortheg-9McJEU8kBXeSqrrlyRlqs3XfcrQ_GYbttNUEva4bCNoQxyw/exec';
-
-    // Using fetch with no-cors or handling the redirect if necessary. 
-    // Usually, Google Apps Script requires a simple POST.
-    fetch(scriptURL, {
+    fetch(SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors', // Essential for Google Apps Script cross-origin
+      mode: 'no-cors',
       body: new URLSearchParams(formData)
     })
       .then(() => {
-        // Show success UI
         steps.forEach(s => s.classList.remove('active'));
         successStep.classList.add('active');
         navButtons.classList.add('hidden');
@@ -112,12 +136,143 @@ document.addEventListener('DOMContentLoaded', () => {
         headerPara.innerText = '¡Análisis 2024 Generado con Éxito!';
       })
       .catch(error => {
-        console.error('Error al enviar:', error);
-        alert('Hubo un error al guardar los datos. Por favor, intenta de nuevo.');
+        console.error('Error:', error);
+        alert('Error al guardar. Tu conexión podría estar lenta.');
         submitBtn.disabled = false;
-        submitBtn.innerHTML = originalBtnText;
+        submitBtn.innerHTML = 'Reintentar';
       });
   });
+
+  // --- DASHBOARD LOGIC ---
+  refreshStatsBtn.addEventListener('click', loadDashboardData);
+
+  async function loadDashboardData() {
+    refreshStatsBtn.disabled = true;
+    refreshStatsBtn.innerHTML = '⌛ Cargando...';
+
+    try {
+      // GAS doGet returns the JSON data
+      const response = await fetch(SCRIPT_URL);
+      const data = await response.json();
+
+      if (!data || data.length === 0) {
+        alert('Aún no hay respuestas suficientes para el análisis.');
+        return;
+      }
+
+      totalResponsesEl.innerText = data.length;
+      processStats(data);
+    } catch (error) {
+      console.error('Error loading stats:', error);
+      alert('Asegúrate de haber habilitado doGet() en tu Apps Script.');
+    } finally {
+      refreshStatsBtn.disabled = false;
+      refreshStatsBtn.innerHTML = '🔄 Actualizar Datos';
+    }
+  }
+
+  function processStats(data) {
+    // 1. Average for each question (q1-q22)
+    const questionAverages = {};
+    for (let i = 1; i <= 22; i++) {
+      const key = `q${i}`;
+      const sum = data.reduce((acc, row) => acc + (parseFloat(row[key.toUpperCase()] || row[key]) || 0), 0);
+      questionAverages[key] = sum / data.length;
+    }
+
+    // 2. Group by SAC Areas
+    const areas = {
+      'Liderazgo': (questionAverages.q1 + questionAverages.q2 + questionAverages.q3 + questionAverages.q4) / 4,
+      'Curricular': (questionAverages.q5 + questionAverages.q6 + questionAverages.q7 + questionAverages.q8 + questionAverages.q9) / 5,
+      'Convivencia': (questionAverages.q10 + questionAverages.q11 + questionAverages.q12 + questionAverages.q13 + questionAverages.q14) / 5,
+      'Recursos': (questionAverages.q15 + questionAverages.q16 + questionAverages.q17 + questionAverages.q18) / 4,
+      'Resultados': (questionAverages.q19 + questionAverages.q20 + questionAverages.q21 + questionAverages.q22) / 4
+    };
+
+    renderRadarChart(Object.keys(areas), Object.values(areas));
+    renderBarChart(questionAverages);
+    renderBulletPoints(questionAverages);
+  }
+
+  function renderRadarChart(labels, values) {
+    const ctx = document.getElementById('sacRadarChart');
+    if (sacRadarChart) sacRadarChart.destroy();
+
+    sacRadarChart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Cumplimiento SAC',
+          data: values,
+          backgroundColor: 'rgba(99, 102, 241, 0.2)',
+          borderColor: '#6366f1',
+          pointBackgroundColor: '#6366f1',
+          borderWidth: 3
+        }]
+      },
+      options: {
+        scales: {
+          r: {
+            beginAtZero: true,
+            max: 5,
+            ticks: { stepSize: 1, color: '#94a3b8' },
+            grid: { color: 'rgba(255,255,255,0.1)' },
+            angleLines: { color: 'rgba(255,255,255,0.1)' }
+          }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  function renderBarChart(averages) {
+    const ctx = document.getElementById('questionsBarChart');
+    if (questionsBarChart) questionsBarChart.destroy();
+
+    questionsBarChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(averages).map(k => `P${k.slice(1)}`),
+        datasets: [{
+          label: 'Puntaje Promedio',
+          data: Object.values(averages),
+          backgroundColor: Object.values(averages).map(v =>
+            v > 4 ? '#22c55e' : v < 3 ? '#ef4444' : '#6366f1'
+          ),
+          borderRadius: 6
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true, max: 5, grid: { color: 'rgba(255,255,255,0.05)' } },
+          x: { grid: { display: false } }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  function renderBulletPoints(averages) {
+    const sorted = Object.entries(averages).sort((a, b) => b[1] - a[1]);
+    const top = sorted.slice(0, 5);
+    const bottom = [...sorted].reverse().slice(0, 5);
+
+    fortalezasList.innerHTML = top.map(([q, score]) => `
+      <li>
+        <span>Pregunta ${q.slice(1)}</span>
+        <span class="score score-high">${score.toFixed(1)}</span>
+      </li>
+    `).join('');
+
+    debilidadesList.innerHTML = bottom.map(([q, score]) => `
+      <li>
+        <span>Pregunta ${q.slice(1)}</span>
+        <span class="score ${score < 3 ? 'score-low' : 'score-mid'}">${score.toFixed(1)}</span>
+      </li>
+    `).join('');
+  }
 
   // Initialize
   updateSurvey();
