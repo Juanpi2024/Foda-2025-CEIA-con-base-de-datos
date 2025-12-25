@@ -80,21 +80,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function validateCurrentStep() {
     const activeStep = steps[currentStep];
-    const requiredInputs = activeStep.querySelectorAll('input[required]');
+    const inputs = activeStep.querySelectorAll('input[required], textarea[required]');
     let isValid = true;
-    const groups = new Set();
-    requiredInputs.forEach(input => groups.add(input.name));
+    const validatedNames = new Set();
 
-    groups.forEach(name => {
-      const checked = activeStep.querySelector(`input[name="${name}"]:checked`);
-      if (!checked) {
-        isValid = false;
-        const question = activeStep.querySelector(`input[name="${name}"]`).closest('.question');
-        question.style.borderLeft = '4px solid #ef4444';
-        setTimeout(() => question.style.borderLeft = 'none', 2000);
+    inputs.forEach(input => {
+      if (validatedNames.has(input.name)) return;
+
+      if (input.type === 'radio') {
+        const checked = activeStep.querySelector(`input[name="${input.name}"]:checked`);
+        if (!checked) {
+          isValid = false;
+          showError(input);
+        }
+      } else {
+        if (!input.value.trim()) {
+          isValid = false;
+          showError(input);
+        }
       }
+      validatedNames.add(input.name);
     });
+
     return isValid;
+  }
+
+  function showError(input) {
+    const question = input.closest('.question');
+    question.style.borderLeft = '4px solid #ef4444';
+    question.style.paddingLeft = '1rem';
+    setTimeout(() => {
+      question.style.borderLeft = 'none';
+      question.style.paddingLeft = '0';
+    }, 3000);
   }
 
   nextBtn.addEventListener('click', () => {
