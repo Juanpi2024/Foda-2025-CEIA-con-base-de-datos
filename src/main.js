@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const recent = [...data].reverse().slice(0, 5);
     participantesList.innerHTML = recent.map(row => {
       // Handle both "Nombre" and "nombre" keys
-      const name = row.nombre || row.Nombre || 'Anónimo';
+      const name = row.rol || row.Rol || row.nombre || row.Nombre || 'Anónimo';
       const date = new Date(row.fecha || row.Fecha).toLocaleDateString('es-CL');
       return `
         <li>

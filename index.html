@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Encuesta FODA 2025 - CEIA Juanita Zúñiga</title>
         <meta name="description" content="Análisis Institucional 2025 para el Colegio CEIA Juanita Zúñiga de Parral.">
-        <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+        <link rel="icon" type="image/svg+xml" href="vite.svg" />
 </head>
 
 <body>
@@ -21,7 +21,7 @@
                 <div class="area-badge">PARRAL</div>
                 <h1>Análisis FODA 2025</h1>
                 <p id="headerDescription">Colegio CEIA Juanita Zúñiga. Tu visión estratégica nos permite mejorar la
-                        calidad educativa de nuestros estudiantes adultos.</p>
+                        calidad educativa de nuestros estudiantes Jóvenes y adultos.</p>
         </header>
 
         <main>
@@ -38,9 +38,14 @@
                                                 <div class="step-title"><span>🏛️</span> I. Liderazgo</div>
 
                                                 <div class="question">
-                                                        <label>Nombre Completo del Encuestado:</label>
-                                                        <input type="text" name="nombre" id="nombre"
-                                                                placeholder="Ingresa tu nombre..." required>
+                                                        <label>Tipo de Encuestado:</label>
+                                                        <select name="rol" id="rol" required>
+                                                                <option value="" disabled selected>Selecciona tu rol...
+                                                                </option>
+                                                                <option value="Docente">Docente</option>
+                                                                <option value="Asistente de la educación">Asistente de
+                                                                        la educación</option>
+                                                        </select>
                                                 </div>
 
                                                 <div class="question">
@@ -152,7 +157,8 @@
                                                 <div class="step-title"><span>📚</span> II. Gestión Curricular</div>
 
                                                 <div class="question">
-                                                        <label>5. Las clases están preparadas y adaptadas para adultos
+                                                        <label>5. Las clases están preparadas y adaptadas para Jóvenes y
+                                                                adultos
                                                                 (andragogía).</label>
                                                         <div class="likert-scale">
                                                                 <div class="likert-item"><input type="radio" name="q5"
@@ -443,7 +449,8 @@
 
                                                 <div class="question">
                                                         <label>17. Los docentes y asistentes demuestran competencia y
-                                                                compromiso con la educación de adultos.</label>
+                                                                compromiso con la educación de Jóvenes y
+                                                                adultos.</label>
                                                         <div class="likert-scale">
                                                                 <div class="likert-item"><input type="radio" name="q17"
                                                                                 id="q17-1" value="1" required><label
@@ -677,7 +684,7 @@
                 &copy; 2025 Colegio CEIA Juanita Zúñiga - App creada por Juan P. Ramírez Product Manager
         </footer>
 
-        <script type="module" src="/src/main.js"></script>
+        <script type="module" src="src/main.js"></script>
 </body>
 
 </html>
