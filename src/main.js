@@ -1,5 +1,6 @@
-import './style.css'
-import Chart from 'chart.js/auto'
+// import './style.css'
+// import Chart from 'chart.js/auto'
+// Chart.js is now loaded via CDN in index.html for compatibility without build step
 
 document.addEventListener('DOMContentLoaded', () => {
   // Elements
