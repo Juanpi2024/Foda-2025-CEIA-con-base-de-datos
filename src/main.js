@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function validateCurrentStep() {
     const activeStep = steps[currentStep];
-    const inputs = activeStep.querySelectorAll('input[required], textarea[required]');
+    const inputs = activeStep.querySelectorAll('input[required], textarea[required], select[required]');
     let isValid = true;
     const validatedNames = new Set();
 
